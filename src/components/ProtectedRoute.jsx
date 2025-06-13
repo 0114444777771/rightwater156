@@ -1,4 +1,4 @@
-// src/contexts/AuthContext.jsx (النسخة المعدلة للبحث في Firestore)
+// src/contexts/AuthContext.jsx (النسخة النهائية والمعدلة)
 
 import React, { createContext, useContext, useEffect, useState } from 'react';
 import {
@@ -12,8 +12,7 @@ import {
   createUserWithEmailAndPassword,
   signInWithEmailAndPassword
 } from 'firebase/auth';
-// 🔥 التغيير رقم 1: استيراد getDoc و doc
-import { doc, setDoc, serverTimestamp, getDoc } from 'firebase/firestore'; 
+import { doc, setDoc, serverTimestamp } from 'firebase/firestore';
 import { auth, db } from '@/firebase';
 import { Loader2 } from 'lucide-react';
 
@@ -26,49 +25,39 @@ export function useAuth() {
 export function AuthProvider({ children }) {
   const [currentUser, setCurrentUser] = useState(null);
   const [isAdmin, setIsAdmin] = useState(false);
-  const [loading, setLoading] = useState(true);
+  const [loading, setLoading] = useState(true); // حالة تحميل واحدة شاملة
 
   useEffect(() => {
     const unsubscribe = onAuthStateChanged(auth, async (user) => {
-      setLoading(true);
+      setLoading(true); // نبدأ التحميل عند تغير حالة المستخدم
       if (user) {
+        // إذا وجد مستخدم، نقوم بتعيينه وجلب صلاحياته
         setCurrentUser(user);
-        
-        // 🔥🔥 الكود الجديد للتحقق من صلاحيات الأدمن عبر Firestore 🔥🔥
         try {
-          // ننشئ مرجعًا (reference) لمستند الأدمن المحتمل
-          // المسار هو 'admins/{user.uid}'
-          const adminDocRef = doc(db, 'admins', user.uid);
+          // 🔥🔥 الكود الأساسي للتحقق من صلاحيات الأدمن 🔥🔥
+          // نجلب الـ ID token الخاص بالمستخدم ونجبره على التحديث
+          // هذا يضمن أننا نحصل على أحدث Custom Claims
+          const idTokenResult = await user.getIdTokenResult(true);
           
-          // نحاول جلب هذا المستند
-          const adminDocSnap = await getDoc(adminDocRef);
-
-          // نتحقق مما إذا كان المستند موجودًا بالفعل
-          if (adminDocSnap.exists()) {
-            // إذا كان موجودًا، فالمستخدم هو أدمن
-            console.log("تم التحقق: المستخدم أدمن.");
-            setIsAdmin(true);
-          } else {
-            // إذا لم يكن موجودًا، فالمستخدم ليس أدمن
-            console.log("تم التحقق: المستخدم ليس أدمن.");
-            setIsAdmin(false);
-          }
+          // نتحقق من وجود claim اسمه admin وقيمته true
+          setIsAdmin(!!idTokenResult.claims.admin);
+          
         } catch (error) {
-          console.error("خطأ في التحقق من صلاحيات الأدمن من Firestore:", error);
-          setIsAdmin(false); // نعيده للحالة الآمنة عند حدوث خطأ
+          console.error("خطأ في التحقق من صلاحيات الأدمن:", error);
+          setIsAdmin(false);
         }
-
       } else {
+        // إذا لم يكن هناك مستخدم، نعيد كل شيء لوضعه الافتراضي
         setCurrentUser(null);
         setIsAdmin(false);
       }
-      setLoading(false);
+      setLoading(false); // انتهى التحميل
     });
 
     return () => unsubscribe();
   }, []);
 
-  // --- باقي الكود يبقى كما هو بدون أي تغيير ---
+  // --- دوال المصادقة (لا يوجد تغيير هنا) ---
   const signUp = async (email, password, displayName) => {
     const userCredential = await createUserWithEmailAndPassword(auth, email, password);
     const user = userCredential.user;
@@ -78,8 +67,9 @@ export function AuthProvider({ children }) {
       displayName: displayName,
       email: user.email,
       createdAt: serverTimestamp(),
-      role: 'user'
+      role: 'user' // تعيين دور افتراضي
     });
+    // لا حاجة لـ setCurrentUser هنا، onAuthStateChanged ستقوم بذلك
     return user;
   };
 
@@ -110,6 +100,7 @@ export function AuthProvider({ children }) {
     await firebaseUpdatePassword(currentUser, newPassword);
   };
 
+  // تجميع كل القيم والدوال
   const value = {
     currentUser,
     isAdmin,
@@ -122,6 +113,7 @@ export function AuthProvider({ children }) {
     reauthenticateAndChangePassword,
   };
 
+  // لا نعرض أي شيء أثناء التحميل الأولي
   if (loading && !currentUser) {
     return (
       <div className="flex items-center justify-center h-screen bg-background">

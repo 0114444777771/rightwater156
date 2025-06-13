@@ -1,0 +1,13 @@
+{
+  "type": "service_account",
+  "project_id": "right-water-462222",
+  "private_key_id": "4aa177313c4153aa1e813fb6b8f397a84ef4166b",
+  "private_key": "-----BEGIN PRIVATE KEY-----\nMIIEvAIBADANBgkqhkiG9w0BAQEFAASCBKYwggSiAgEAAoIBAQDsgMUte4IbZ5gA\niPzW6StgZzfkoDK8oCPf9+ax42Kg/UEdRvPcUZmCwEzGDISCXKJI1J94ZUXIhHqG\ndPwUwGIJ6QTFJA3ixyhaTSjp5nJhx5FyGpsH4L8LOEdmleRoTUirhN+KnG9Dl4Bk\nHtZtV+qo48ebGIF2NVeZOdsz6NTy4/53s4uGK/vJ/yuM7IAsWvmkyXVLmKkb7/uG\nMtdoeRjUcllDPKUiJyHi6mt/jfugJ0chgxinyiuu8/I868bYTH2mlGiAfqSYVFyq\nOadwBw0ifCszvLmoZ9fbnQv4hm3T9o6p2UmIpKYldCTWMoCWNRbZ6giuxYHPIK3i\ni1Anec7XAgMBAAECggEATHB6Sm8G6FCdQl8ESXnneSsjV5Onkmu37KW1PH2f3SS9\nrPbHzsfY8/evWLunAHNsSFngiQtCeMLIzzh0WUis50MXNZinnEp+cmFJ/f9rrMrR\n6a1LukobtUalXTTJNCT2feleTvCszY3kA3gsGf82awvj8e8DuO8Ytv+KJ8bzPOVw\nvbP803Y1PAhUBAHxZSbKiH2rXrH8n0xNnnDj4Fe0nnhduRRMMRYPEUQ4su5JRD4p\nmo03fJzWz+WjcY8XOylKDjmzBabEPfX822H628BQmCQwwkfsw2LzGVwp95RnhNy2\n3o+YE/QM0vtvgFnDNVh2H+yHu1pyPxIfPnJzTTD8wQKBgQD6vSoWeR2qf61XiRUo\n31UulKhH5uqNOj+kH8TY/z7mTboaYauYYdexl2R4h7n1C40c9GYeB7535EW/aJuy\nx1ncJTHqDUDX54gRc4IfaOZFlDk+IlCKny3H4EmwFw5ax+L8x3miCSp1AUEDQVjO\nZIzYIucm5oxMW+Cz8ntaROjWRwKBgQDxdyNZvnAVLEegkvX/ZnLiAqnkj2xMWqG0\n4ugUfSZRGd0a0vFPNL3BX8/LGGxy1oyCfXkxU8fiVkoWm1WORirEOLRAPZuDfZme\n2shgPq8fAKfOjtcOrcP0bCq8HEYTFIicgRohIl4F1nw+eAwAkZLV4Oqqk25LTpn8\nr7i6jGQ68QKBgFzJO5XtY+kALmlCNS5W1vLR2CQjc5CniX12tCWI7wHSqZexpQpS\nyrrRR0DDGTFxANtCJbffLcC4HIdkcpmJ49rveLUgCmrbJyMuF20AKJZ+71/q2tsx\nZIOeoCYlog4+AeWA+6XWtntt510JBY/67ZPd9qQSlMB9D34HsVYKQg9pAoGAelKQ\nZfZDcXZtErtgQ3Hy4OvYhSDjDAsdwDTyvO5pasxfZidWd3mQZ1XSPmCxD7wAklpd\n+s8mg1KTVcB7JwgEwkK3jZOoJISMPh03RQp8TIhYehuCdr0wd7IUNBdeqGvOiPod\n8osmdm6hokPOULtuV0sJlj/5r8yx1YBvZJGadQECgYAoFGMp4t+PE4NRt4xZAdT5\nzatkiczVRgzyUhciEmHKJ30SPfTbX3Xscl/bQ4Jo/YOPVfnF4N+TNzGhoQHGvYTF\nU/0CRQaPmcgNivnZIcReXTcFld0lxTDzEL22a5Gr/GdMcrcCVzeN1D2fXtEgQN9U\nldJiYqTrX1cREp763T84tw==\n-----END PRIVATE KEY-----\n",
+  "client_email": "firebase-admin-right-water@right-water-462222.iam.gserviceaccount.com",
+  "client_id": "110276137763754352028",
+  "auth_uri": "https://accounts.google.com/o/oauth2/auth",
+  "token_uri": "https://oauth2.googleapis.com/token",
+  "auth_provider_x509_cert_url": "https://www.googleapis.com/oauth2/v1/certs",
+  "client_x509_cert_url": "https://www.googleapis.com/robot/v1/metadata/x509/firebase-admin-right-water%40right-water-462222.iam.gserviceaccount.com",
+  "universe_domain": "googleapis.com"
+}

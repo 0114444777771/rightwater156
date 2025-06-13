@@ -1,9 +1,9 @@
-// src/contexts/AuthContext.jsx (النسخة النهائية والمعدلة)
+// src/contexts/AuthContext.jsx (نسخة معدلة للتحقق من Firestore)
 
 import React, { createContext, useContext, useEffect, useState } from 'react';
-import {
-  onAuthStateChanged,
-  signOut as firebaseSignOut,
+import { 
+  onAuthStateChanged, 
+  signOut as firebaseSignOut, 
   sendPasswordResetEmail,
   updatePassword as firebaseUpdatePassword,
   reauthenticateWithCredential,
@@ -12,7 +12,12 @@ import {
   createUserWithEmailAndPassword,
   signInWithEmailAndPassword
 } from 'firebase/auth';
-import { doc, setDoc, serverTimestamp } from 'firebase/firestore';
+import { 
+  doc, 
+  getDoc, // سنحتاج لهذه الدالة
+  setDoc, 
+  serverTimestamp 
+} from 'firebase/firestore';
 import { auth, db } from '@/firebase';
 import { Loader2 } from 'lucide-react';
 
@@ -25,39 +30,35 @@ export function useAuth() {
 export function AuthProvider({ children }) {
   const [currentUser, setCurrentUser] = useState(null);
   const [isAdmin, setIsAdmin] = useState(false);
-  const [loading, setLoading] = useState(true); // حالة تحميل واحدة شاملة
+  const [loading, setLoading] = useState(true);
 
   useEffect(() => {
     const unsubscribe = onAuthStateChanged(auth, async (user) => {
-      setLoading(true); // نبدأ التحميل عند تغير حالة المستخدم
+      setLoading(true);
+      setCurrentUser(user);
+      
       if (user) {
-        // إذا وجد مستخدم، نقوم بتعيينه وجلب صلاحياته
-        setCurrentUser(user);
+        // 🔥🔥 هذا هو الكود الذي طلبته 🔥🔥
+        // التحقق من صلاحيات الأدمن عن طريق قراءة مستند من مجموعة 'admins'
         try {
-          // 🔥🔥 الكود الأساسي للتحقق من صلاحيات الأدمن 🔥🔥
-          // نجلب الـ ID token الخاص بالمستخدم ونجبره على التحديث
-          // هذا يضمن أننا نحصل على أحدث Custom Claims
-          const idTokenResult = await user.getIdTokenResult(true);
-          
-          // نتحقق من وجود claim اسمه admin وقيمته true
-          setIsAdmin(!!idTokenResult.claims.admin);
-          
+          const adminDocRef = doc(db, "admins", user.uid);
+          const adminDoc = await getDoc(adminDocRef);
+          setIsAdmin(adminDoc.exists()); // إذا كان المستند موجودًا، فالمستخدم هو أدمن
         } catch (error) {
           console.error("خطأ في التحقق من صلاحيات الأدمن:", error);
           setIsAdmin(false);
         }
       } else {
-        // إذا لم يكن هناك مستخدم، نعيد كل شيء لوضعه الافتراضي
-        setCurrentUser(null);
+        // لا يوجد مستخدم، فبالتأكيد ليس أدمن
         setIsAdmin(false);
       }
-      setLoading(false); // انتهى التحميل
+      setLoading(false);
     });
 
     return () => unsubscribe();
   }, []);
 
-  // --- دوال المصادقة (لا يوجد تغيير هنا) ---
+  // --- باقي الدوال كما هي بدون أي تغيير ---
   const signUp = async (email, password, displayName) => {
     const userCredential = await createUserWithEmailAndPassword(auth, email, password);
     const user = userCredential.user;
@@ -67,40 +68,25 @@ export function AuthProvider({ children }) {
       displayName: displayName,
       email: user.email,
       createdAt: serverTimestamp(),
-      role: 'user' // تعيين دور افتراضي
+      role: 'user' 
     });
-    // لا حاجة لـ setCurrentUser هنا، onAuthStateChanged ستقوم بذلك
     return user;
   };
-
-  const signIn = (email, password) => {
-    return signInWithEmailAndPassword(auth, email, password);
-  };
-
-  const signOut = () => {
-    return firebaseSignOut(auth);
-  };
-
-  const sendPasswordReset = (email) => {
-    return sendPasswordResetEmail(auth, email, {
-      url: `${window.location.origin}/login`
-    });
-  };
-
+  const signIn = (email, password) => signInWithEmailAndPassword(auth, email, password);
+  const signOut = () => firebaseSignOut(auth);
+  const sendPasswordReset = (email) => sendPasswordResetEmail(auth, email, { url: `${window.location.origin}/login` });
   const updateUserProfile = async (updates) => {
     if (!currentUser) return Promise.reject(new Error("No user is currently signed in."));
     await updateProfile(currentUser, updates);
     setCurrentUser({ ...auth.currentUser });
   };
-  
   const reauthenticateAndChangePassword = async (currentPassword, newPassword) => {
     if (!currentUser) throw new Error("No user is currently signed in.");
     const credential = EmailAuthProvider.credential(currentUser.email, currentPassword);
     await reauthenticateWithCredential(currentUser, credential);
     await firebaseUpdatePassword(currentUser, newPassword);
   };
-
-  // تجميع كل القيم والدوال
+  
   const value = {
     currentUser,
     isAdmin,
@@ -113,8 +99,7 @@ export function AuthProvider({ children }) {
     reauthenticateAndChangePassword,
   };
 
-  // لا نعرض أي شيء أثناء التحميل الأولي
-  if (loading && !currentUser) {
+  if (loading) {
     return (
       <div className="flex items-center justify-center h-screen bg-background">
         <Loader2 className="h-16 w-16 animate-spin text-primary" />
@@ -125,7 +110,7 @@ export function AuthProvider({ children }) {
 
   return (
     <AuthContext.Provider value={value}>
-      {!loading && children}
+      {children}
     </AuthContext.Provider>
   );
 }

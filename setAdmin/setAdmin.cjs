@@ -3,7 +3,7 @@ const admin = require('firebase-admin');
 
 // استيراد مفتاح حساب الخدمة الذي حملته
 // !!! غيّر اسم الملف لاسم الملف الذي حملته
-const serviceAccount = require('right-water-firebase-adminsdk-fbsvc-4f9467450e.json');
+const serviceAccount = require('./right-water-firebase-adminsdk-fbsvc-4f9467450e.json');
 
 // تهيئة تطبيق الأدمن
 admin.initializeApp({

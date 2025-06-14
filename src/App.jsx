@@ -7,7 +7,7 @@ import { motion } from 'framer-motion';
 // --- استيراد الموفرات والمكونات الأساسية ---
 import { AuthProvider } from '@/contexts/AuthContext.jsx';
 import { CartProvider } from '@/contexts/CartContext.jsx';
-import Layout from '@/components/Layout.jsx';
+import Layout from '@/components/Layout.jsx'; // Layout الموقع العام
 import ProtectedRoute from '@/components/ProtectedRoute.jsx';
 import { Toaster as HotToaster } from 'react-hot-toast';
 import { Toaster as ShadToaster } from "@/components/ui/toaster.jsx";
@@ -64,7 +64,6 @@ function App() {
           <Routes>
             {/* ======================= الهيكل الرئيسي للموقع العام ======================= */}
             <Route path="/" element={<Layout />}>
-              {/* --- الصفحات العامة --- */}
               <Route index element={<AnimatedPage><HomePage /></AnimatedPage>} />
               <Route path="products" element={<AnimatedPage><ProductsPage /></AnimatedPage>} />
               <Route path="product/:productId" element={<AnimatedPage><ProductDetailsPage /></AnimatedPage>} />
@@ -76,33 +75,30 @@ function App() {
               <Route path="forgot-password" element={<AnimatedPage><ForgotPasswordPage /></AnimatedPage>} />
               <Route path="order-success/:orderId" element={<AnimatedPage><OrderSuccessPage /></AnimatedPage>} />
               <Route path="terms-conditions" element={<AnimatedPage><TermsConditionsPage /></AnimatedPage>} />
-
-              {/* --- المسارات المحمية للمستخدم المسجل --- */}
-              <Route element={<ProtectedRoute />}>
-                <Route path="checkout" element={<AnimatedPage><CheckoutPage /></AnimatedPage>} />
-                {/* دمجنا ProfileLayout هنا */}
-                <Route path="profile" element={<ProfileLayout />}>
-                  <Route index element={<UserProfilePage />} />
-                  <Route path="orders" element={<UserOrdersPage />} />
-                  <Route path="orders/:orderId" element={<OrderDetailsPage />} />
-                  <Route path="change-password" element={<ChangePasswordPage />} />
-                </Route>
-              </Route>
+              <Route path="order/:orderId" element={<AnimatedPage><OrderDetailsPage /></AnimatedPage>} />
+              
+              <Route path="checkout" element={<ProtectedRoute><AnimatedPage><CheckoutPage /></AnimatedPage></ProtectedRoute>} />
 
               {/* الصفحة غير الموجودة (آخر حاجة في الهيكل العام) */}
               <Route path="*" element={<AnimatedPage><NotFoundPage /></AnimatedPage>} />
             </Route>
             
-            {/* ======================= مسارات لوحة التحكم المحمية للأدمن ======================= */}
-            <Route element={<ProtectedRoute adminOnly={true} />}>
-              <Route path="/AdminDashboard" element={<AdminLayout />}>
-                <Route index element={<AdminDashboardPage />} />
-                <Route path="orders" element={<OrderManagement />} />
-                <Route path="products" element={<ProductManagement />} />
-                <Route path="users" element={<UserManagement />} />
-                <Route path="settings" element={<AdminSettings />} />
-              </Route>
+            {/* ======================= مسارات الملف الشخصي المحمية ======================= */}
+            <Route path="/profile" element={<ProtectedRoute><ProfileLayout /></ProtectedRoute>}>
+              <Route index element={<UserProfilePage />} />
+              <Route path="orders" element={<UserOrdersPage />} />
+              <Route path="change-password" element={<ChangePasswordPage />} />
             </Route>
+
+            {/* ======================= مسارات لوحة التحكم المحمية للأدمن ======================= */}
+            <Route path="/AdminDashboard" element={<ProtectedRoute adminOnly={true}><AdminLayout /></ProtectedRoute>}>
+              <Route index element={<AdminDashboardPage />} />
+              <Route path="orders" element={<OrderManagement />} />
+              <Route path="products" element={<ProductManagement />} />
+              <Route path="users" element={<UserManagement />} />
+              <Route path="settings" element={<AdminSettings />} />
+            </Route>
+
           </Routes>
           <ShadToaster />
           <HotToaster position="bottom-center" />

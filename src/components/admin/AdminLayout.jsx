@@ -1,6 +1,7 @@
 // src/components/admin/AdminLayout.jsx
 import React from 'react';
-import { Link, NavLink } from 'react-router-dom';
+// 🔥🔥 هذا هو السطر الذي تم إضافته لإصلاح المشكلة 🔥🔥
+import { Link, NavLink, Outlet } from 'react-router-dom';
 import { LayoutDashboard, Package, ListOrdered, Users, Settings, Home } from 'lucide-react';
 
 const AdminLayout = () => {
@@ -35,7 +36,6 @@ const AdminLayout = () => {
           </NavLink>
         </nav>
         
-        {/* 🔥 الزر الجديد هنا 🔥 */}
         <div className="mt-auto pt-4 border-t border-slate-700">
           <Link to="/" className="flex items-center justify-center px-4 py-3 text-lg rounded-lg transition-colors text-slate-300 hover:bg-white/10 hover:text-white">
             <Home className="mr-3 rtl:ml-3" /> العودة للموقع

@@ -25,19 +25,13 @@ const LoginPage = () => {
     e.preventDefault();
     setLoading(true);
     try {
-      const userCredential = await signInWithEmailAndPassword(auth, email, password);
-      // 🔥🔥 تعديل صغير للتحقق من صلاحيات الأدمن بشكل صحيح 🔥🔥
-      const idTokenResult = await userCredential.user.getIdTokenResult();
+      await signInWithEmailAndPassword(auth, email, password);
       toast({
         title: "تم تسجيل الدخول بنجاح!",
         description: "مرحباً بعودتك.",
       });
-      // التحقق من صلاحيات الأدمن من الـ claims
-      if (idTokenResult.claims.admin) {
-        navigate('/admin');
-      } else {
-        navigate('/profile');
-      }
+      // 🔥🔥 التعديل: تم توحيد التوجيه إلى صفحة الملف الشخصي للجميع 🔥🔥
+      navigate('/profile'); 
     } catch (error) {
       toast({
         title: "فشل تسجيل الدخول",
@@ -52,10 +46,9 @@ const LoginPage = () => {
     setLoading(true);
     try {
       await signInWithPopup(auth, provider);
-      // بعد تسجيل الدخول الاجتماعي، سيقوم AuthProvider بتوجيه المستخدم
-      // لا داعي لكتابة الكود هنا، لأنه سيتم التعامل معه في onAuthStateChanged
       toast({ title: "تم تسجيل الدخول بنجاح!" });
-      navigate('/profile'); // توجيه افتراضي
+      // توجيه افتراضي للملف الشخصي بعد الدخول الاجتماعي
+      navigate('/profile');
     } catch (error) {
       toast({
         title: "فشل تسجيل الدخول الاجتماعي",
@@ -123,7 +116,6 @@ const LoginPage = () => {
         </CardFooter>
       </Card>
       
-      {/* 🔥🔥 التعديل الجديد هنا 🔥🔥 */}
       <div className="mt-8 text-center">
         <img src={webFoxLogo} alt="Web Fox Logo" className="w-20 h-20 opacity-80 mx-auto" />
         <p className="text-sm text-muted-foreground font-medium mt-2">

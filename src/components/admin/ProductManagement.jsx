@@ -3,7 +3,7 @@ import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { db, storage } from '@/firebase';
 import { ref, uploadBytesResumable, getDownloadURL } from "firebase/storage";
-import { collection, doc, updateDoc, addDoc, deleteDoc, runTransaction, onSnapshot, orderBy } from 'firebase/firestore';
+import { collection, doc, query, updateDoc, addDoc, deleteDoc, runTransaction, onSnapshot, orderBy } from 'firebase/firestore';
 import imageCompression from 'browser-image-compression';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table.jsx";
 import { Button } from "@/components/ui/button.jsx";
@@ -203,7 +203,8 @@ const ProductManagement = () => {
         <h2 className="text-2xl font-semibold text-slate-800 dark:text-slate-100 flex items-center">
           <Package className="mr-3" />إدارة المنتجات
         </h2>
-        <Button variant="outline" onClick={() => navigate('/admin')}>
+        {/* 🔥🔥 هذا هو السطر الذي تم تعديله 🔥🔥 */}
+        <Button variant="outline" onClick={() => navigate('/AdminDashboard')}>
           <ArrowRight className="ml-2 h-4 w-4" />
           الرجوع للوحة التحكم
         </Button>

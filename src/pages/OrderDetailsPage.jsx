@@ -139,7 +139,7 @@ const OrderDetailsPage = () => {
 
                 <div className="text-center mt-8">
                     <Button asChild variant="outline">
-                        <Link to="/profile">
+                        <Link to="/profile/orders">
                             <ArrowLeft className="ml-2 h-4 w-4" />
                             العودة إلى طلباتي
                         </Link>

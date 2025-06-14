@@ -14,7 +14,7 @@ const AdminSettings = () => {
             <Settings className="mr-3 rtl:ml-3 rtl:mr-0" size={32} />
             الإعدادات
         </h1>
-        <Button variant="outline" onClick={() => navigate('/admin')}>
+        <Button variant="outline" onClick={() => navigate('/AdminDashboard')}>
           <ArrowRight className="ml-2 h-4 w-4" />
           الرجوع إلى لوحة التحكم
         </Button>

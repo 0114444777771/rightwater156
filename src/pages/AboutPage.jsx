@@ -7,7 +7,7 @@ const AboutPage = () => {
   const teamMembers = [
     { name: "المهندس/ أحمد خالد", role: "المدير التنفيذي ومؤسس الشركة", image: "https://images.unsplash.com/photo-1560250097-0b93528c311a?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxzZWFyY2h8N3x8Y2VvfGVufDB8fDB8fHww&auto=format&fit=crop&w=300&q=60", description: "خبير في تقنيات معالجة المياه بخبرة تمتد لأكثر من 15 عامًا." },
     { name: "الدكتورة/ سارة علي", role: "رئيس قسم البحث والتطوير", image: "https://images.unsplash.com/photo-1544005313-94ddf0286df2?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxzZWFyY2h8NHx8ZmVtYWxlJTIwc2NpZW50aXN0fGVufDB8fDB8fHww&auto=format&fit=crop&w=300&q=60", description: "متخصصة في تطوير حلول مبتكرة لمعالجة المياه وتحليتها." },
-    { name: "الأستاذ/ محمد حسن", role: "مدير التسويق والمبيعات", image: "https://images.unsplash.com/photo-1573496359142-b8d87734a5a2?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxzZWFyY2h8NXx8bWFuYWdlcnxlbnwwfHwwfHx8MA&auto=format&fit=crop&w=300&q=60", description: "يعمل على توسيع قاعدة عملاء الشركة وتقديم أفضل الخدمات." },
+    { name: "الأستاذ/ فارس", role: "مدير التسويق والمبيعات", image: "https://images.unsplash.com/photo-1573496359142-b8d87734a5a2?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxzZWFyY2h8NXx8bWFuYWdlcnxlbnwwfHwwfHx8MA&auto=format&fit=crop&w=300&q=60", description: "يعمل على توسيع قاعدة عملاء الشركة وتقديم أفضل الخدمات." },
   ];
 
   const values = [

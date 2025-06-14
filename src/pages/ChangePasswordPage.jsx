@@ -12,7 +12,7 @@ import { useToast } from '@/components/ui/use-toast';
 import { Loader2, KeyRound, ShieldCheck } from 'lucide-react';
 
 const ChangePasswordPage = () => {
-  const { reauthenticateAndChangePassword, signOut } = useAuth(); // استخدام signOut من السياق
+  const { reauthenticateAndChangePassword, signOut } = useAuth(); // 🔥 تم استيراد signOut
   const { toast } = useToast();
   const navigate = useNavigate();
 
@@ -51,7 +51,7 @@ const ChangePasswordPage = () => {
         duration: 5000,
       });
       
-      // تسجيل الخروج بعد تغيير كلمة المرور للأمان
+      // 🔥🔥 الكود الجديد: تسجيل الخروج وتوجيه المستخدم 🔥🔥
       await signOut();
       navigate('/login');
 
@@ -105,4 +105,4 @@ const ChangePasswordPage = () => {
   );
 };
 
-export default ChangePasswordPage;    
+export default ChangePasswordPage;

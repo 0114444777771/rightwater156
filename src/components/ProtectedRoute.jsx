@@ -8,7 +8,7 @@ import { Loader2 } from 'lucide-react';
 const ProtectedRoute = ({ adminOnly = false }) => {
   const { currentUser, isAdmin, loading } = useAuth();
 
-  // نعرض شاشة تحميل أثناء التحقق من حالة المستخدم
+  // 1. عرض شاشة تحميل أثناء التحقق من حالة المستخدم
   if (loading) {
      return (
       <div className="flex justify-center items-center h-screen">
@@ -17,17 +17,17 @@ const ProtectedRoute = ({ adminOnly = false }) => {
      );
   }
 
-  // إذا لم يكن المستخدم مسجلاً، نوجهه لصفحة الدخول
+  // 2. إذا لم يكن المستخدم مسجلاً، وجهه لصفحة الدخول
   if (!currentUser) {
     return <Navigate to="/login" replace />;
   }
 
-  // إذا كانت الصفحة للمدير فقط والمستخدم الحالي ليس مديرًا، نوجهه للصفحة الرئيسية
+  // 3. إذا كانت الصفحة للمدير فقط والمستخدم الحالي ليس مديرًا، وجهه للصفحة الرئيسية
   if (adminOnly && !isAdmin) {
     return <Navigate to="/" replace />; 
   }
 
-  // إذا كان كل شيء على ما يرام، نعرض الصفحة المطلوبة
+  // 4. إذا كان كل شيء على ما يرام، اعرض الصفحة المطلوبة (سواء للمستخدم العادي أو المدير)
   return <Outlet />;
 };
 

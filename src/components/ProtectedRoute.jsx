@@ -1,69 +1,42 @@
-// Firestore Security Rules - Updated to use Custom Claims
+// src/components/auth/ProtectedRoute.jsx
 
-rules_version = '2';
+import React from 'react';
+import { Navigate, Outlet } from 'react-router-dom';
+import { useAuth } from '@/hooks/useAuth'; // سنقوم بإنشاء هذا الهوك المخصص
+import { Loader2 } from 'lucide-react';
 
-service cloud.firestore {
-  match /databases/{database}/documents {
+/**
+ * @param {{ requiredRole: 'admin' | 'user' }} props
+ * props.requiredRole: يحدد الصلاحية المطلوبة للوصول ('admin' أو 'user')
+ */
+const ProtectedRoute = ({ requiredRole }) => {
+  const { user, isAdmin, loading } = useAuth();
 
-    // ===================================================================
-    //  función de ayuda (Helper Function)
-    // ===================================================================
-    // هذه هي الوظيفة الأساسية للتحقق مما إذا كان المستخدم لديه صلاحيات الأدمن.
-    // تبحث عن 'admin: true' في الـ token الخاص بالمستخدم.
-    function isAdmin() {
-      return request.auth != null && request.auth.token.admin == true;
-    }
-
-    // ===================================================================
-    // Reglas para Productos (Products Collection)
-    // ===================================================================
-    match /products/{productId} {
-      // السماح لأي شخص (زائر أو مستخدم) بقراءة المنتجات.
-      // هذا ضروري لعرض المنتجات في متجرك.
-      allow read: if true;
-
-      // السماح فقط للأدمن بإنشاء، تعديل، أو حذف المنتجات.
-      // 'write' تشمل 'create', 'update', و 'delete'.
-      allow write: if isAdmin();
-    }
-
-    // ===================================================================
-    // Reglas para Usuarios (Users Collection)
-    // ===================================================================
-    match /users/{userId} {
-      // السماح للأدمن بقراءة أو تحديث بيانات أي مستخدم.
-      // والسماح للمستخدم العادي بقراءة أو تحديث بياناته الشخصية فقط.
-      allow read, update: if isAdmin() || request.auth.uid == userId;
-
-      // السماح فقط للأدمن بإنشاء حسابات جديدة (إذا لزم الأمر) أو حذفها.
-      allow create, delete: if isAdmin();
-    }
-
-    // ===================================================================
-    // Reglas para Pedidos (Orders Collection)
-    // ===================================================================
-    match /orders/{orderId} {
-      // السماح للأدمن بقراءة أي طلب.
-      // والسماح للمستخدم بقراءة طلباته الخاصة فقط.
-      // (يفترض أن كل مستند طلب يحتوي على حقل 'userId' مع UID الخاص بصاحب الطلب).
-      allow read: if isAdmin() || request.auth.uid == resource.data.userId;
-      
-      // السماح للمستخدمين المسجلين بإنشاء طلبات جديدة.
-      allow create: if request.auth != null;
-
-      // السماح فقط للأدمن بتحديث (مثل تغيير حالة الطلب) أو حذف الطلبات.
-      allow update, delete: if isAdmin();
-    }
-    
-    // ===================================================================
-    // Reglas para Estadísticas (Static Data - optional)
-    // ===================================================================
-    // هذه قاعدة اختيارية إذا كان لديك مجموعة لتخزين الإحصائيات
-    // مثل إجمالي المبيعات أو عدد المستخدمين.
-    match /statistics/{statId} {
-        // فقط الأدمن يمكنه قراءة أو كتابة هذه البيانات الحساسة.
-        allow read, write: if isAdmin();
-    }
-
+  // الحالة 1: جاري التحقق من حالة المصادقة (Loading)
+  // نعرض شاشة تحميل لمنع الوميض (flickering) أثناء إعادة التوجيه
+  if (loading) {
+    return (
+      <div className="flex items-center justify-center h-screen w-screen">
+        <Loader2 className="h-12 w-12 animate-spin text-primary" />
+      </div>
+    );
   }
-}
+
+  // الحالة 2: المستخدم غير مسجل دخوله
+  if (!user) {
+    // أعد توجيه المستخدم إلى صفحة تسجيل الدخول واحفظ المسار الذي كان يحاول الوصول إليه
+    return <Navigate to="/login" replace />;
+  }
+
+  // الحالة 3: المسار يتطلب صلاحية 'admin' والمستخدم ليس أدمن
+  if (requiredRole === 'admin' && !isAdmin) {
+    // المستخدم مسجل دخوله لكنه ليس أدمن، أعد توجيهه إلى الصفحة الرئيسية أو صفحة خطأ
+    return <Navigate to="/" replace />;
+  }
+  
+  // إذا كانت كل الشروط متحققة، اسمح بعرض الصفحة المطلوبة
+  // <Outlet /> هو المكان الذي سيتم فيه عرض المكون المحمي (مثل AdminDashboardPage)
+  return <Outlet />;
+};
+
+export default ProtectedRoute;

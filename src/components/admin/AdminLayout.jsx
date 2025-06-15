@@ -1,4 +1,5 @@
 // src/components/admin/AdminLayout.jsx
+
 import React from 'react';
 // 🔥🔥 هذا هو السطر الذي تم إضافته لإصلاح المشكلة 🔥🔥
 import { Link, NavLink, Outlet } from 'react-router-dom';

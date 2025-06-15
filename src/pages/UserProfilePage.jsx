@@ -1,8 +1,10 @@
 // src/pages/UserProfilePage.jsx
+
 import React, { useState, useEffect } from 'react';
 import { motion } from 'framer-motion';
 import { useAuth } from '@/contexts/AuthContext.jsx';
-import { db, doc, updateDoc } from '@/firebase'; // Import only what's needed
+// 1. التعديل هنا: تم استبدال updateDoc بـ setDoc
+import { db, doc, setDoc } from '@/firebase'; 
 import { updateProfile } from 'firebase/auth';
 import { Button } from '@/components/ui/button.jsx';
 import { Input } from '@/components/ui/input.jsx';
@@ -46,7 +48,10 @@ const UserProfilePage = () => {
           }
     
           const userDocRef = doc(db, 'users', currentUser.uid);
-          await updateDoc(userDocRef, {
+          
+          // 2. التعديل هنا: تم استخدام setDoc مع خيار merge
+          // هذا سيقوم بإنشاء المستند إذا لم يكن موجوداً، أو تحديثه إذا كان موجوداً
+          await setDoc(userDocRef, {
             displayName: formData.name,
             phone: formData.phone,
           }, { merge: true });

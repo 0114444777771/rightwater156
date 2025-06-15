@@ -1,4 +1,4 @@
-// src/App.jsx (النسخة النهائية والمعدلة لكل المسارات)
+// src/App.jsx (الكود النهائي والصحيح)
 
 import React from 'react';
 import { BrowserRouter as Router, Routes, Route, Link } from 'react-router-dom';
@@ -7,7 +7,7 @@ import { motion } from 'framer-motion';
 // --- استيراد الموفرات والمكونات الأساسية ---
 import { AuthProvider } from '@/contexts/AuthContext.jsx';
 import { CartProvider } from '@/contexts/CartContext.jsx';
-import Layout from '@/components/Layout.jsx'; // Layout الموقع العام
+import Layout from '@/components/Layout.jsx';
 import ProtectedRoute from '@/components/ProtectedRoute.jsx';
 import { Toaster as HotToaster } from 'react-hot-toast';
 import { Toaster as ShadToaster } from "@/components/ui/toaster.jsx";
@@ -62,7 +62,7 @@ function App() {
       <CartProvider>
         <Router>
           <Routes>
-            {/* ======================= الهيكل الرئيسي للموقع العام ======================= */}
+            {/* الهيكل الرئيسي للموقع العام (يستخدم Layout) */}
             <Route path="/" element={<Layout />}>
               <Route index element={<AnimatedPage><HomePage /></AnimatedPage>} />
               <Route path="products" element={<AnimatedPage><ProductsPage /></AnimatedPage>} />
@@ -76,21 +76,19 @@ function App() {
               <Route path="order-success/:orderId" element={<AnimatedPage><OrderSuccessPage /></AnimatedPage>} />
               <Route path="terms-conditions" element={<AnimatedPage><TermsConditionsPage /></AnimatedPage>} />
               <Route path="order/:orderId" element={<AnimatedPage><OrderDetailsPage /></AnimatedPage>} />
-              
               <Route path="checkout" element={<ProtectedRoute><AnimatedPage><CheckoutPage /></AnimatedPage></ProtectedRoute>} />
-
-              {/* الصفحة غير الموجودة (آخر حاجة في الهيكل العام) */}
               <Route path="*" element={<AnimatedPage><NotFoundPage /></AnimatedPage>} />
             </Route>
             
-            {/* ======================= مسارات الملف الشخصي المحمية ======================= */}
+            {/* مسارات الملف الشخصي (تستخدم ProfileLayout) */}
             <Route path="/profile" element={<ProtectedRoute><ProfileLayout /></ProtectedRoute>}>
               <Route index element={<UserProfilePage />} />
-      {/*<Route path="orders" element={<UserOrdersPage />} />
-              <Route path="change-password" element={<ChangePasswordPage />} />
+              {/* يمكنك إلغاء التعليق عن هذه لاحقاً */}
+              {/* <Route path="orders" element={<UserOrdersPage />} /> */}
+              {/* <Route path="change-password" element={<ChangePasswordPage />} /> */}
             </Route>
 
-            {/* ======================= مسارات لوحة التحكم المحمية للأدمن ======================= */}
+            {/* مسارات لوحة التحكم (تستخدم AdminLayout) */}
             <Route path="/AdminDashboard" element={<ProtectedRoute adminOnly={true}><AdminLayout /></ProtectedRoute>}>
               <Route index element={<AdminDashboardPage />} />
               <Route path="orders" element={<OrderManagement />} />

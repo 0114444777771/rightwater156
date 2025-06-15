@@ -33,7 +33,7 @@ import CheckoutPage from '@/pages/CheckoutPage.jsx';
 import OrderSuccessPage from '@/pages/OrderSuccessPage.jsx';
 import OrderDetailsPage from '@/pages/OrderDetailsPage.jsx';
 import TermsConditionsPage from '@/pages/TermsConditionsPage.jsx';
-//import UserOrdersPage from '@/pages/UserOrdersPage.jsx'; 
+import UserOrdersPage from '@/pages/UserOrdersPage.jsx'; 
 
 // --- صفحات لوحة التحكم ---
 import AdminDashboardPage from '@/pages/AdminDashboardPage.jsx';
@@ -83,9 +83,9 @@ function App() {
             {/* مسارات الملف الشخصي (تستخدم ProfileLayout) */}
             <Route path="/profile" element={<ProtectedRoute><ProfileLayout /></ProtectedRoute>}>
               <Route index element={<UserProfilePage />} />
-              {/* يمكنك إلغاء التعليق عن هذه لاحقاً */}
-              {/* <Route path="orders" element={<UserOrdersPage />} /> */}
-              {/* <Route path="change-password" element={<ChangePasswordPage />} /> */}
+              
+              <Route path="orders" element={<UserOrdersPage />} /> */}
+              <Route path="change-password" element={<ChangePasswordPage />} />
             </Route>
 
             {/* مسارات لوحة التحكم (تستخدم AdminLayout) */}

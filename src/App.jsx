@@ -84,7 +84,8 @@ function App() {
             <Route path="/profile" element={<ProtectedRoute><ProfileLayout /></ProtectedRoute>}>
               <Route index element={<UserProfilePage />} />
               
-              <Route path="orders" element={<UserOrdersPage />} /> */}
+              <Route path="orders" element={<UserOrdersPage />} />
+              
               <Route path="change-password" element={<ChangePasswordPage />} />
             </Route>
 

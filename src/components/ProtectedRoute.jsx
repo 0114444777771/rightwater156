@@ -1,11 +1,12 @@
 // src/components/ProtectedRoute.jsx
+// --- تم التعديل ---
 
 import React from 'react';
-import { Navigate, Outlet } from 'react-router-dom';
+import { Navigate } from 'react-router-dom';
 import { useAuth } from '@/contexts/AuthContext.jsx';
 import { Loader2 } from 'lucide-react';
 
-const ProtectedRoute = ({ adminOnly = false }) => {
+const ProtectedRoute = ({ children, adminOnly = false }) => {
   const { currentUser, isAdmin, loading } = useAuth();
 
   // نعرض شاشة تحميل أثناء التحقق من حالة المستخدم
@@ -27,8 +28,8 @@ const ProtectedRoute = ({ adminOnly = false }) => {
     return <Navigate to="/" replace />; 
   }
 
-  // إذا كان كل شيء على ما يرام، نعرض الصفحة المطلوبة
-  return <Outlet />;
+  // إذا كان كل شيء على ما يرام، نعرض المكونات الفرعية (الأبناء)
+  return children;
 };
 
 export default ProtectedRoute;

@@ -2,7 +2,7 @@
 
 import React from 'react';
 import { Navigate, Outlet } from 'react-router-dom';
-import { useAuth } from '@/hooks/useAuth'; // سنقوم بإنشاء هذا الهوك المخصص
+import { useAuth } from '../hooks/useAuth.js'; // سنقوم بإنشاء هذا الهوك المخصص
 import { Loader2 } from 'lucide-react';
 
 /**

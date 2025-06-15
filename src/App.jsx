@@ -1,10 +1,9 @@
-// src/App.jsx (الكود الكامل والنهائي بعد التصحيح)
+// src/App.jsx (النسخة النهائية النظيفة)
 
 import React from 'react';
 import { BrowserRouter as Router, Routes, Route, Link } from 'react-router-dom';
 import { motion } from 'framer-motion';
 
-// --- استيراد الموفرات والمكونات الأساسية ---
 import { AuthProvider } from '@/contexts/AuthContext.jsx';
 import { CartProvider } from '@/contexts/CartContext.jsx';
 import Layout from '@/components/Layout.jsx';
@@ -13,11 +12,9 @@ import { Toaster as HotToaster } from 'react-hot-toast';
 import { Toaster as ShadToaster } from "@/components/ui/toaster.jsx";
 import { Button } from '@/components/ui/button.jsx';
 
-// --- استيراد الهياكل (Layouts) ---
 import AdminLayout from '@/components/admin/AdminLayout.jsx';
 import ProfileLayout from '@/components/ProfileLayout.jsx';
 
-// --- استيراد كل الصفحات ---
 import HomePage from '@/pages/HomePage.jsx';
 import ProductsPage from '@/pages/ProductsPage.jsx';
 import ProductDetailsPage from '@/pages/ProductDetailsPage.jsx';
@@ -35,14 +32,12 @@ import OrderDetailsPage from '@/pages/OrderDetailsPage.jsx';
 import TermsConditionsPage from '@/pages/TermsConditionsPage.jsx';
 import UserOrdersPage from '@/pages/UserOrdersPage.jsx'; 
 
-// --- صفحات لوحة التحكم ---
 import AdminDashboardPage from '@/pages/AdminDashboardPage.jsx';
 import OrderManagement from '@/components/admin/OrderManagement.jsx';
 import ProductManagement from '@/components/admin/ProductManagement.jsx';
 import AdminSettings from '@/components/admin/AdminSettings.jsx';
 import UserManagement from '@/components/admin/UserManagement.jsx';
 
-// --- مكونات مساعدة ---
 const AnimatedPage = ({ children }) => ( <motion.div initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: -10 }} transition={{ duration: 0.3 }}> {children} </motion.div> );
 const NotFoundPage = () => (
   <div className="text-center py-20 flex flex-col items-center justify-center min-h-[calc(100vh-250px)]">
@@ -55,14 +50,12 @@ const NotFoundPage = () => (
   </div>
 );
 
-// --- المكون الرئيسي للتطبيق ---
 function App() {
   return (
     <AuthProvider>
       <CartProvider>
         <Router>
           <Routes>
-            {/* الهيكل الرئيسي للموقع العام (يستخدم Layout) */}
             <Route path="/" element={<Layout />}>
               <Route index element={<AnimatedPage><HomePage /></AnimatedPage>} />
               <Route path="products" element={<AnimatedPage><ProductsPage /></AnimatedPage>} />
@@ -80,19 +73,12 @@ function App() {
               <Route path="*" element={<AnimatedPage><NotFoundPage /></AnimatedPage>} />
             </Route>
             
-            {/* مسارات الملف الشخصي (تستخدم ProfileLayout) */}
             <Route path="/profile" element={<ProtectedRoute><ProfileLayout /></ProtectedRoute>}>
               <Route index element={<UserProfilePage />} />
-              
-              {/* ========================================================== */}
-              {/* == هذا هو السطر الذي تم تصحيحه (تم حذف "*/}" من النهاية) == */}
-              {/* ========================================================== */}
               <Route path="orders" element={<UserOrdersPage />} />
-              
               <Route path="change-password" element={<ChangePasswordPage />} />
             </Route>
 
-            {/* مسارات لوحة التحكم (تستخدم AdminLayout) */}
             <Route path="/AdminDashboard" element={<ProtectedRoute adminOnly={true}><AdminLayout /></ProtectedRoute>}>
               <Route index element={<AdminDashboardPage />} />
               <Route path="orders" element={<OrderManagement />} />

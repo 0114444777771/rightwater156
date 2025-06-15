@@ -1,4 +1,4 @@
-// src/App.jsx (الكود النهائي والصحيح)
+// src/App.jsx (الكود الكامل والنهائي بعد التصحيح)
 
 import React from 'react';
 import { BrowserRouter as Router, Routes, Route, Link } from 'react-router-dom';
@@ -84,6 +84,9 @@ function App() {
             <Route path="/profile" element={<ProtectedRoute><ProfileLayout /></ProtectedRoute>}>
               <Route index element={<UserProfilePage />} />
               
+              {/* ========================================================== */}
+              {/* == هذا هو السطر الذي تم تصحيحه (تم حذف "*/}" من النهاية) == */}
+              {/* ========================================================== */}
               <Route path="orders" element={<UserOrdersPage />} />
               
               <Route path="change-password" element={<ChangePasswordPage />} />

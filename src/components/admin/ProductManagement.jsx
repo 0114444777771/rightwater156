@@ -1,59 +1,86 @@
 // src/components/admin/ProductManagement.jsx
+
 import React, { useState, useEffect } from 'react';
-import { useNavigate } from 'react-router-dom';
-import { db, storage } from '@/firebase';
+import { db, storage } from '@/firebase'; // تأكد من أن هذا المسار صحيح لإعدادات Firebase
 import { ref, uploadBytesResumable, getDownloadURL } from "firebase/storage";
 import { collection, doc, query, updateDoc, addDoc, deleteDoc, runTransaction, onSnapshot, orderBy } from 'firebase/firestore';
 import imageCompression from 'browser-image-compression';
+
+// استيراد مكونات الواجهة (UI Components)
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table.jsx";
 import { Button } from "@/components/ui/button.jsx";
 import { Input } from "@/components/ui/input.jsx";
 import { Label } from "@/components/ui/label.jsx";
 import { Textarea } from "@/components/ui/textarea.jsx";
-import { Card } from "@/components/ui/card.jsx";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card.jsx";
 import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog.jsx";
-import { PlusCircle, Edit, Trash2, Package, Loader2, AlertTriangle, Search, FilterX, ImagePlus, X, ArrowRight } from 'lucide-react';
-import { motion, AnimatePresence } from 'framer-motion';
-import { useToast } from '@/components/ui/use-toast';
 import { Progress } from '@/components/ui/progress.jsx';
+import { useToast } from '@/components/ui/use-toast';
+
+// استيراد الأيقونات (Icons)
+import { PlusCircle, Edit, Trash2, Package, Loader2, AlertTriangle, Search, ImagePlus, X } from 'lucide-react';
+
+// الحالة الأولية للمنتج الجديد لتسهيل إعادة التعيين
+const INITIAL_PRODUCT_STATE = {
+  name: '',
+  category: '',
+  price: 0,
+  description: '',
+  stock: 0,
+  originalPrice: null, // يستخدم في حالة العروض
+};
 
 const ProductManagement = () => {
-  const navigate = useNavigate();
-  // ... (باقي الكود كما هو)
-  
-  // باقي الـ state والـ functions زي ما هي بالظبط
+  // --- State Hooks ---
   const [products, setProducts] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
-  const { toast } = useToast();
-  const [isAddModalOpen, setIsAddModalOpen] = useState(false);
-  const [isEditModalOpen, setIsEditModalOpen] = useState(false);
-  const [isStockModalOpen, setIsStockModalOpen] = useState(false);
-  const [currentProduct, setCurrentProduct] = useState(null);
-  const [newProduct, setNewProduct] = useState({ name: '', category: '', price: 0, description: '', image: '', stock: 0, originalPrice: null });
+  const [searchTerm, setSearchTerm] = useState('');
+
+  // State لإدارة النوافذ المنبثقة (Modals)
+  const [isModalOpen, setIsModalOpen] = useState(false);
+  const [modalMode, setModalMode] = useState('add'); // 'add' or 'edit'
+
+  // State لإدارة بيانات الفورم
+  const [currentProduct, setCurrentProduct] = useState(INITIAL_PRODUCT_STATE);
   const [imageFile, setImageFile] = useState(null);
   const [imagePreview, setImagePreview] = useState('');
-  const [uploadProgress, setUploadProgress] = useState(0);
-  const [isUploading, setIsUploading] = useState(false);
-  const [stockUpdate, setStockUpdate] = useState({ amount: 0, type: 'add' });
-  const [searchTerm, setSearchTerm] = useState('');
   
+  // State لعملية رفع الصورة
+  const [isUploading, setIsUploading] = useState(false);
+  const [uploadProgress, setUploadProgress] = useState(0);
+
+  const { toast } = useToast();
+
+  // --- useEffect Hook لجلب المنتجات ---
   useEffect(() => {
     setLoading(true);
+    // جلب المنتجات وترتيبها حسب الاسم
     const q = query(collection(db, 'products'), orderBy('name'));
-    const unsubscribe = onSnapshot(q, (snapshot) => {
-      setProducts(snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() })));
-      setLoading(false);
-    }, (err) => {
-      setError("حدث خطأ أثناء تحميل المنتجات.");
-      setLoading(false);
-    });
+
+    // onSnapshot يقوم بالاستماع لأي تغييرات في قاعدة البيانات بشكل حي
+    const unsubscribe = onSnapshot(q, 
+      (snapshot) => {
+        const productsData = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
+        setProducts(productsData);
+        setLoading(false);
+      }, 
+      (err) => {
+        // في حالة وجود خطأ (مثل خطأ الصلاحيات)
+        console.error("Firebase onSnapshot error: ", err);
+        setError("فشلت عملية جلب المنتجات. تأكد من أن لديك الصلاحيات اللازمة.");
+        setLoading(false);
+      }
+    );
+
+    // إلغاء الاشتراك عند مغادرة الصفحة لتجنب تسريب الذاكرة
     return () => unsubscribe();
   }, []);
 
-  const handleInputChange = (e, formSetter) => {
+  // --- دوال التعامل مع الفورم ---
+  const handleInputChange = (e) => {
     const { name, value, type } = e.target;
-    formSetter(prev => ({ ...prev, [name]: type === 'number' ? parseFloat(value) || 0 : value }));
+    setCurrentProduct(prev => ({ ...prev, [name]: type === 'number' ? parseFloat(value) || 0 : value }));
   };
 
   const handleImageChange = async (e) => {
@@ -67,155 +94,266 @@ const ProductManagement = () => {
 
     setImagePreview(URL.createObjectURL(file));
 
-    const options = { maxSizeMB: 1, maxWidthOrHeight: 1024, useWebWorker: true, initialQuality: 0.7 };
-
+    // ضغط الصورة قبل رفعها لتحسين الأداء
+    const options = { maxSizeMB: 1, maxWidthOrHeight: 1024, useWebWorker: true };
     try {
       toast({ title: "جاري ضغط الصورة..." });
       const compressedFile = await imageCompression(file, options);
       setImageFile(compressedFile);
       toast({ title: "✅ الصورة جاهزة للرفع!", className: "bg-green-500 text-white" });
     } catch (error) {
-      toast({ title: "خطأ في ضغط الصورة", description: "سيتم رفع الصورة الأصلية.", variant: "destructive" });
-      setImageFile(file);
+      toast({ title: "خطأ في ضغط الصورة", description: "سيتم استخدام الصورة الأصلية.", variant: "destructive" });
+      setImageFile(file); // استخدام الصورة الأصلية في حالة فشل الضغط
     }
   };
 
-  const resetImageState = () => {
+  const resetForm = () => {
+    setCurrentProduct(INITIAL_PRODUCT_STATE);
     setImageFile(null);
     setImagePreview('');
     setUploadProgress(0);
     setIsUploading(false);
-    const fileInput = document.getElementById('file-upload');
-    if(fileInput) fileInput.value = '';
+    setIsModalOpen(false);
   };
   
-  const uploadImageAndGetURL = (file) => {
+  // --- دوال التعامل مع Firebase ---
+  const uploadImage = () => {
     return new Promise((resolve, reject) => {
-      if (!file) { reject(new Error("No file provided.")); return; }
+      if (!imageFile) return resolve(null); // لا يوجد صورة جديدة للرفع
+      
       setIsUploading(true);
-      const storageRef = ref(storage, `products/${Date.now()}_${file.name}`);
-      const uploadTask = uploadBytesResumable(storageRef, file);
+      const storageRef = ref(storage, `products/${Date.now()}_${imageFile.name}`);
+      const uploadTask = uploadBytesResumable(storageRef, imageFile);
 
       uploadTask.on('state_changed',
         (snapshot) => setUploadProgress((snapshot.bytesTransferred / snapshot.totalBytes) * 100),
         (error) => { setIsUploading(false); reject(error); },
-        () => getDownloadURL(uploadTask.snapshot.ref).then(url => { setIsUploading(false); resolve(url); })
+        async () => {
+          const downloadURL = await getDownloadURL(uploadTask.snapshot.ref);
+          setIsUploading(false);
+          resolve(downloadURL);
+        }
       );
     });
   };
 
-  const handleAddProduct = async (e) => {
+  const handleSubmit = async (e) => {
     e.preventDefault();
-    if (!newProduct.name || newProduct.price <= 0 || !imageFile) {
-      toast({ title: "بيانات ناقصة", description: "الرجاء إدخال اسم وسعر وصورة المنتج.", variant: "destructive" });
+    if (!currentProduct.name || currentProduct.price <= 0) {
+      toast({ title: "بيانات ناقصة", description: "اسم المنتج وسعره مطلوبان.", variant: "destructive" });
       return;
     }
     
+    // في حالة الإضافة، الصورة مطلوبة
+    if (modalMode === 'add' && !imageFile) {
+        toast({ title: "صورة مطلوبة", description: "يرجى اختيار صورة للمنتج الجديد.", variant: "destructive" });
+        return;
+    }
+
     try {
-      const imageUrl = await uploadImageAndGetURL(imageFile);
-      await addDoc(collection(db, 'products'), { ...newProduct, image: imageUrl });
-      toast({ title: "✅ تم إضافة المنتج", className: "bg-green-500 text-white" });
-      setIsAddModalOpen(false);
-      resetImageState();
-      setNewProduct({ name: '', category: '', price: 0, description: '', image: '', stock: 0, originalPrice: null });
+      const imageUrl = await uploadImage();
+      const productData = { ...currentProduct };
+      if (imageUrl) {
+        productData.image = imageUrl;
+      }
+
+      if (modalMode === 'add') {
+        await addDoc(collection(db, 'products'), productData);
+        toast({ title: "✅ تم إضافة المنتج بنجاح", className: "bg-green-500 text-white" });
+      } else {
+        const productRef = doc(db, 'products', currentProduct.id);
+        await updateDoc(productRef, productData);
+        toast({ title: "✅ تم تعديل المنتج بنجاح", className: "bg-green-500 text-white" });
+      }
+      resetForm();
+
     } catch (err) {
-      toast({ title: "❌ خطأ في الإضافة", description: err.message, variant: "destructive" });
+      console.error("Error submitting product: ", err);
+      toast({ title: "❌ حدث خطأ", description: err.message, variant: "destructive" });
     }
   };
 
-  const handleEditProduct = async (e) => {
-    e.preventDefault();
-    if (!currentProduct) return;
+  const handleDelete = async (productId, productName) => {
+    if (!window.confirm(`هل أنت متأكد أنك تريد حذف المنتج "${productName}"؟ هذا الإجراء لا يمكن التراجع عنه.`)) return;
     
-    try {
-      let imageUrl = currentProduct.image;
-      if (imageFile) imageUrl = await uploadImageAndGetURL(imageFile);
-      
-      const productRef = doc(db, 'products', currentProduct.id);
-      await updateDoc(productRef, { ...currentProduct, image: imageUrl });
-      
-      toast({ title: "✅ تم تعديل المنتج", className: "bg-green-500 text-white" });
-      setIsEditModalOpen(false);
-      resetImageState();
-      setCurrentProduct(null);
-    } catch (err) {
-      toast({ title: "❌ خطأ في التعديل", description: err.message, variant: "destructive" });
-    }
-  };
-
-  const handleDeleteProduct = async (productId, productName) => {
-     if (!window.confirm(`هل أنت متأكد أنك تريد حذف المنتج "${productName}"؟`)) return;
     try {
       await deleteDoc(doc(db, 'products', productId));
       toast({ title: "🗑️ تم حذف المنتج", className: "bg-red-500 text-white" });
     } catch (err) {
+      console.error("Error deleting product: ", err);
       toast({ title: "❌ خطأ في الحذف", description: err.message, variant: "destructive" });
     }
   };
 
-  const handleUpdateStock = async (e) => {
-    e.preventDefault();
-    if (!currentProduct) return;
-    try {
-      const productRef = doc(db, 'products', currentProduct.id);
-      await runTransaction(db, async (transaction) => {
-        const sfDoc = await transaction.get(productRef);
-        if (!sfDoc.exists()) throw new Error("المنتج غير موجود!");
-        let newStock = stockUpdate.type === 'add' ? (sfDoc.data().stock || 0) + Number(stockUpdate.amount) : Number(stockUpdate.amount);
-        transaction.update(productRef, { stock: Math.max(0, newStock) });
-      });
-      toast({ title: "📦 تم تحديث المخزون", className: "bg-green-500 text-white" });
-      setIsStockModalOpen(false);
-    } catch (err) {
-      toast({ title: "❌ خطأ في تحديث المخزون", description: err.message, variant: "destructive" });
-    }
+  // --- دوال فتح النوافذ المنبثقة ---
+  const openAddModal = () => {
+    resetForm();
+    setModalMode('add');
+    setIsModalOpen(true);
   };
-
+  
   const openEditModal = (product) => {
-    resetImageState();
-    setCurrentProduct({ ...product });
-    setIsEditModalOpen(true);
-  };
-  
-  const openStockModal = (product) => {
+    resetForm();
+    setModalMode('edit');
     setCurrentProduct(product);
-    setStockUpdate({ amount: 0, type: 'add' });
-    setIsStockModalOpen(true);
+    setImagePreview(product.image); // عرض الصورة الحالية
+    setIsModalOpen(true);
   };
-  
-  const renderProductForm = (productData, setProductData, handleSubmit, isEdit = false) => (
-    <form onSubmit={handleSubmit} className="space-y-4 text-right max-h-[70vh] overflow-y-auto p-1">
-        {/* ... (Form fields remain the same) ... */}
-    </form>
-  );
 
+  // --- فلترة المنتجات بناءً على البحث ---
   const filteredProducts = products.filter(product =>
     product.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
     (product.category && product.category.toLowerCase().includes(searchTerm.toLowerCase()))
   );
 
-  if (loading) return <div className="flex items-center justify-center p-10"><Loader2 className="h-12 w-12 animate-spin text-primary" /><p className="ml-4 text-lg text-muted-foreground">جاري تحميل المنتجات...</p></div>;
-  if (error) return <div className="p-10 text-center"><AlertTriangle className="h-12 w-12 text-destructive mx-auto mb-4" /><p className="text-lg text-destructive">{error}</p></div>;
+  // --- عرض حالات التحميل والخطأ ---
+  if (loading) {
+    return (
+      <div className="flex items-center justify-center h-64">
+        <Loader2 className="h-12 w-12 animate-spin text-primary" />
+        <p className="ml-4 text-lg text-muted-foreground">جاري تحميل المنتجات...</p>
+      </div>
+    );
+  }
 
+  if (error) {
+    return (
+      <div className="p-10 text-center bg-red-50 dark:bg-red-900/20 rounded-lg">
+        <AlertTriangle className="h-12 w-12 text-destructive mx-auto mb-4" />
+        <p className="text-lg text-destructive font-semibold">حدث خطأ</p>
+        <p className="text-muted-foreground">{error}</p>
+      </div>
+    );
+  }
+  
+  // --- JSX الرئيسي للعرض ---
   return (
-    <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} className="space-y-6">
-      <div className="flex flex-col sm:flex-row justify-between items-center gap-4">
-        <h2 className="text-2xl font-semibold text-slate-800 dark:text-slate-100 flex items-center">
-          <Package className="mr-3" />إدارة المنتجات
-        </h2>
-        {/* 🔥🔥 هذا هو السطر الذي تم تعديله 🔥🔥 */}
-        <Button variant="outline" onClick={() => navigate('/AdminDashboard')}>
-          <ArrowRight className="ml-2 h-4 w-4" />
-          الرجوع للوحة التحكم
+    <div className="space-y-6 p-4 md:p-6">
+      <div className="flex flex-wrap justify-between items-center gap-4">
+        <h1 className="text-3xl font-bold text-slate-800 dark:text-slate-100 flex items-center">
+          <Package className="mr-3 h-8 w-8 text-primary" />
+          إدارة المنتجات
+        </h1>
+        <Button onClick={openAddModal}>
+          <PlusCircle className="mr-2 h-5 w-5" />
+          إضافة منتج جديد
         </Button>
       </div>
 
-      <div className="flex flex-col sm:flex-row justify-between items-center gap-4">
-        <div className="relative w-full sm:w-auto"><Search className="absolute left-3 rtl:right-3 top-1/2 -translate-y-1/2 h-5 w-5 text-muted-foreground" /><Input type="text" placeholder="ابحث..." value={searchTerm} onChange={(e) => setSearchTerm(e.target.value)} className="max-w-sm pl-10 rtl:pr-10" /></div>
-        <Dialog open={isAddModalOpen} onOpenChange={setIsAddModalOpen}><DialogTrigger asChild><Button onClick={() => { resetImageState(); setIsAddModalOpen(true); }}><PlusCircle className="mr-2 h-5 w-5" /> إضافة منتج</Button></DialogTrigger><DialogContent className="sm:max-w-lg text-right"><DialogHeader><DialogTitle>إضافة منتج جديد</DialogTitle></DialogHeader>{renderProductForm(newProduct, setNewProduct, handleAddProduct)}</DialogContent></Dialog>
-      </div>
-      {/* ... (Rest of the component JSX) ... */}
-    </motion.div>
+      <Card>
+        <CardHeader>
+            <CardTitle>قائمة المنتجات ({filteredProducts.length})</CardTitle>
+            <div className="relative mt-2">
+                <Search className="absolute left-3 rtl:right-3 top-1/2 -translate-y-1/2 h-5 w-5 text-muted-foreground" />
+                <Input 
+                    type="text" 
+                    placeholder="ابحث بالاسم أو التصنيف..." 
+                    value={searchTerm} 
+                    onChange={(e) => setSearchTerm(e.target.value)} 
+                    className="w-full max-w-sm pl-10 rtl:pr-10" 
+                />
+            </div>
+        </CardHeader>
+        <CardContent>
+          <Table>
+            <TableHeader>
+              <TableRow>
+                <TableHead>الصورة</TableHead>
+                <TableHead>اسم المنتج</TableHead>
+                <TableHead>التصنيف</TableHead>
+                <TableHead>السعر</TableHead>
+                <TableHead>المخزون</TableHead>
+                <TableHead>إجراءات</TableHead>
+              </TableRow>
+            </TableHeader>
+            <TableBody>
+              {filteredProducts.length > 0 ? (
+                filteredProducts.map((product) => (
+                  <TableRow key={product.id}>
+                    <TableCell>
+                      <img src={product.image} alt={product.name} className="h-12 w-12 object-cover rounded-md" />
+                    </TableCell>
+                    <TableCell className="font-medium">{product.name}</TableCell>
+                    <TableCell>{product.category || 'غير مصنف'}</TableCell>
+                    <TableCell>{product.price} ج.م</TableCell>
+                    <TableCell>{product.stock}</TableCell>
+                    <TableCell className="space-x-2 rtl:space-x-reverse">
+                      <Button variant="outline" size="icon" onClick={() => openEditModal(product)}>
+                        <Edit className="h-4 w-4" />
+                      </Button>
+                      <Button variant="destructive" size="icon" onClick={() => handleDelete(product.id, product.name)}>
+                        <Trash2 className="h-4 w-4" />
+                      </Button>
+                    </TableCell>
+                  </TableRow>
+                ))
+              ) : (
+                <TableRow>
+                  <TableCell colSpan={6} className="text-center h-24">
+                    لا توجد منتجات تطابق بحثك.
+                  </TableCell>
+                </TableRow>
+              )}
+            </TableBody>
+          </Table>
+        </CardContent>
+      </Card>
+      
+      {/* --- نافذة الإضافة والتعديل --- */}
+      <Dialog open={isModalOpen} onOpenChange={setIsModalOpen}>
+        <DialogContent className="sm:max-w-lg text-right">
+          <DialogHeader>
+            <DialogTitle>{modalMode === 'add' ? 'إضافة منتج جديد' : 'تعديل المنتج'}</DialogTitle>
+            <DialogDescription>
+              {modalMode === 'add' ? 'أدخل تفاصيل المنتج الجديد.' : `أنت تقوم بتعديل "${currentProduct.name}".`}
+            </DialogDescription>
+          </DialogHeader>
+          <form onSubmit={handleSubmit} className="space-y-4 max-h-[70vh] overflow-y-auto p-2">
+            <div>
+              <Label htmlFor="name">اسم المنتج</Label>
+              <Input id="name" name="name" value={currentProduct.name} onChange={handleInputChange} required />
+            </div>
+            <div className="grid grid-cols-2 gap-4">
+              <div>
+                <Label htmlFor="price">السعر (ج.م)</Label>
+                <Input id="price" name="price" type="number" value={currentProduct.price} onChange={handleInputChange} required />
+              </div>
+              <div>
+                <Label htmlFor="stock">الكمية بالمخزون</Label>
+                <Input id="stock" name="stock" type="number" value={currentProduct.stock} onChange={handleInputChange} />
+              </div>
+            </div>
+             <div>
+              <Label htmlFor="category">التصنيف</Label>
+              <Input id="category" name="category" value={currentProduct.category} onChange={handleInputChange} />
+            </div>
+            <div>
+              <Label htmlFor="description">الوصف</Label>
+              <Textarea id="description" name="description" value={currentProduct.description} onChange={handleInputChange} />
+            </div>
+            <div>
+              <Label>صورة المنتج</Label>
+              <Input id="image" type="file" accept="image/*" onChange={handleImageChange} className="block w-full text-sm text-slate-500 file:mr-4 file:py-2 file:px-4 file:rounded-full file:border-0 file:text-sm file:font-semibold file:bg-violet-50 file:text-violet-700 hover:file:bg-violet-100"/>
+              {imagePreview && (
+                <div className="mt-4 relative w-40 h-40">
+                  <img src={imagePreview} alt="معاينة" className="rounded-md w-full h-full object-cover" />
+                  <Button variant="destructive" size="icon" className="absolute -top-2 -right-2 h-6 w-6 rounded-full" onClick={() => {setImagePreview(''); setImageFile(null);}}>
+                    <X className="h-4 w-4" />
+                  </Button>
+                </div>
+              )}
+              {isUploading && <Progress value={uploadProgress} className="mt-2" />}
+            </div>
+            <DialogFooter>
+              <Button type="button" variant="ghost" onClick={() => setIsModalOpen(false)}>إلغاء</Button>
+              <Button type="submit" disabled={isUploading}>
+                {isUploading ? 'جاري الرفع...' : (modalMode === 'add' ? 'إضافة المنتج' : 'حفظ التعديلات')}
+              </Button>
+            </DialogFooter>
+          </form>
+        </DialogContent>
+      </Dialog>
+    </div>
   );
 };
 
